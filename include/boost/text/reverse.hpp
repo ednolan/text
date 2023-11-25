@@ -62,16 +62,7 @@ namespace boost { namespace text {
 
             constexpr reverse_view() = default;
 
-#if BOOST_TEXT_USE_CONCEPTS
-            template<typename V>
-            requires std::is_same_v<std::remove_reference_t<V>, View>
-#else
-            template<
-                typename V,
-                typename E = std::enable_if_t<
-                    std::is_same<std::remove_reference_t<V>, View>::value>>
-#endif
-            constexpr reverse_view(int, V && v) : v_{(V &&) v}
+            constexpr explicit reverse_view(View v) : v_{std::move(v)}
             {
                 first_ = set_rev_rng_first<
                     std::is_same<v_iter, v_sent>::value>::call(v_);
@@ -89,6 +80,9 @@ namespace boost { namespace text {
             View v_ = View();
             iterator first_;
         };
+
+        template<typename Range>
+        reverse_view(int, Range&&) -> reverse_view<std::views::all_t<Range>>;
 
         template<typename T>
         struct is_reverse_view : std::false_type
@@ -110,7 +104,7 @@ namespace boost { namespace text {
         {
             static constexpr auto call(R && r)
             {
-                return reverse_view<std::remove_reference_t<R>>(0, (R &&) r);
+                return reverse_view{std::forward<R>(r)};
             }
         };
 
