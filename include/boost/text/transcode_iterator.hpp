@@ -2500,12 +2500,11 @@ namespace boost { namespace text { BOOST_TEXT_NAMESPACE_V2 {
         format FromFormat,
         format ToFormat,
         std::input_iterator I,
-        std::sentinel_for<I> S,
-        transcoding_error_handler ErrorHandler>
+        std::sentinel_for<I> S>
         requires std::convertible_to<std::iter_value_t<I>, dtl::format_to_type_t<FromFormat>>
     class utf_iterator
         : public stl_interfaces::iterator_interface<
-              utf_iterator<FromFormat, ToFormat, I, S, ErrorHandler>,
+              utf_iterator<FromFormat, ToFormat, I, S>,
               detail::bidirectional_at_most_t<I>,
               dtl::format_to_type_t<ToFormat>,
               dtl::format_to_type_t<ToFormat>>
@@ -2516,8 +2515,6 @@ namespace boost { namespace text { BOOST_TEXT_NAMESPACE_V2 {
         static_assert(
             ToFormat == format::utf8 || ToFormat == format::utf16 ||
             ToFormat == format::utf32);
-
-        static_assert(!std::input_iterator<I> || noexcept(ErrorHandler{}("")));
 
     public:
         using value_type = dtl::format_to_type_t<ToFormat>;
@@ -2542,7 +2539,7 @@ namespace boost { namespace text { BOOST_TEXT_NAMESPACE_V2 {
         template<class I2, class S2>
         requires std::convertible_to<I2, I> && std::convertible_to<S2, S>
         constexpr utf_iterator(
-            utf_iterator<FromFormat, ToFormat, I2, S2, ErrorHandler> const &
+            utf_iterator<FromFormat, ToFormat, I2, S2> const &
                 other) :
             buf_(other.buf_),
             first_and_curr_(other.first_and_curr_),
@@ -2620,7 +2617,7 @@ namespace boost { namespace text { BOOST_TEXT_NAMESPACE_V2 {
 
         // exposition only
         using base_type = stl_interfaces::iterator_interface<
-            utf_iterator<FromFormat, ToFormat, I, S, ErrorHandler>,
+            utf_iterator<FromFormat, ToFormat, I, S>,
             detail::bidirectional_at_most_t<I>,
             value_type,
             value_type>;
@@ -2663,7 +2660,8 @@ namespace boost { namespace text { BOOST_TEXT_NAMESPACE_V2 {
                 char8_t curr_c = cp;
 
                 auto error = [&]() {
-                    return ErrorHandler{}("Ill-formed UTF-8.");
+                  // todo
+                  return U'�';
                 };
                 auto next = [&]() {
                     ++curr();
@@ -2829,22 +2827,22 @@ namespace boost { namespace text { BOOST_TEXT_NAMESPACE_V2 {
                     return hi;
 
                 if (boost::text::low_surrogate(hi)) {
-                    return ErrorHandler{}(
-                        "Invalid UTF-16 sequence; lone trailing surrogate.");
+                  // todo
+                  // "Invalid UTF-16 sequence; lone trailing surrogate.
                 }
 
                 // high surrogate
                 if (curr() == last_) {
-                    return ErrorHandler{}(
-                        "Invalid UTF-16 sequence; lone leading surrogate.");
+                  // todo
+                  // "Invalid UTF-16 sequence; lone leading surrogate."
                 }
 
                 char16_t lo = *curr();
                 ++curr();
                 ++to_increment_;
                 if (!boost::text::low_surrogate(lo)) {
-                    return ErrorHandler{}(
-                        "Invalid UTF-16 sequence; lone leading surrogate.");
+                  // todo
+                  // "Invalid UTF-16 sequence; lone leading surrogate."
                 }
 
                 return char32_t((hi - high_surrogate_base) << 10) +
@@ -2872,20 +2870,20 @@ namespace boost { namespace text { BOOST_TEXT_NAMESPACE_V2 {
                     return lo;
 
                 if (boost::text::high_surrogate(lo)) {
-                    return ErrorHandler{}(
-                        "Invalid UTF-16 sequence; lone leading surrogate.");
+                  // todo
+                  // "Invalid UTF-16 sequence; lone leading surrogate.
                 }
 
                 // low surrogate
                 if (curr() == first()) {
-                    return ErrorHandler{}(
-                        "Invalid UTF-16 sequence; lone trailing surrogate.");
+                  // todo
+                  // "Invalid UTF-16 sequence; lone trailing surrogate."
                 }
 
                 char16_t hi = *std::ranges::prev(curr());
                 if (!boost::text::high_surrogate(hi)) {
-                    return ErrorHandler{}(
-                        "Invalid UTF-16 sequence; lone trailing surrogate.");
+                  // todo
+                  // "Invalid UTF-16 sequence; lone trailing surrogate."
                 }
                 --curr();
 
@@ -2936,24 +2934,10 @@ namespace boost { namespace text { BOOST_TEXT_NAMESPACE_V2 {
             if constexpr (std::forward_iterator<I>) {
                 initial = curr();
             }
-            if constexpr (noexcept(ErrorHandler{}(""))) {
-                char32_t cp = decode_code_point();
-                auto it = encode_code_point(cp, buf_.begin());
-                buf_index_ = 0;
-                buf_last_ = it - buf_.begin();
-            } else {
-                auto buf = buf_;
-                try {
-                    char32_t cp = decode_code_point();
-                    auto it = encode_code_point(cp, buf_.begin());
-                    buf_index_ = 0;
-                    buf_last_ = it - buf_.begin();
-                } catch (...) {
-                    buf_ = buf_;
-                    curr() = initial;
-                    throw;
-                }
-            }
+            char32_t cp = decode_code_point();
+            auto it = encode_code_point(cp, buf_.begin());
+            buf_index_ = 0;
+            buf_last_ = it - buf_.begin();
             if constexpr (std::forward_iterator<I>) {
                 curr() = initial;
             }
@@ -2962,26 +2946,11 @@ namespace boost { namespace text { BOOST_TEXT_NAMESPACE_V2 {
         constexpr void read_reverse()
         {
             auto initial = curr();
-            if constexpr (noexcept(ErrorHandler{}(""))) {
-                char32_t cp = decode_code_point_reverse();
-                auto it = encode_code_point(cp, buf_.begin());
-                buf_last_ = it - buf_.begin();
-                buf_index_ = buf_last_ - 1;
-                to_increment_ = std::distance(curr(), initial);
-            } else {
-                auto buf = buf_;
-                try {
-                    char32_t cp = decode_code_point_reverse();
-                    auto it = encode_code_point(cp, buf_.begin());
-                    buf_last_ = it - buf_.begin();
-                    buf_index_ = buf_last_ - 1;
-                    to_increment_ = std::distance(curr(), initial);
-                } catch (...) {
-                    buf_ = buf_;
-                    curr() = initial;
-                    throw;
-                }
-            }
+            char32_t cp = decode_code_point_reverse();
+            auto it = encode_code_point(cp, buf_.begin());
+            buf_last_ = it - buf_.begin();
+            buf_index_ = buf_last_ - 1;
+            to_increment_ = std::distance(curr(), initial);
         }
 
         constexpr I first() const requires std::bidirectional_iterator<I>
@@ -3005,8 +2974,7 @@ namespace boost { namespace text { BOOST_TEXT_NAMESPACE_V2 {
             format FromFormat2,
             format ToFormat2,
             std::input_iterator I2,
-            std::sentinel_for<I2> S2,
-            transcoding_error_handler ErrorHandler2>
+            std::sentinel_for<I2> S2>
         requires std::convertible_to<std::iter_value_t<I2>, dtl::format_to_type_t<FromFormat2>>
         friend class utf_iterator;
     };
@@ -3021,10 +2989,9 @@ namespace boost { namespace text { namespace detail {
         format FromFormat,
         format ToFormat,
         class I,
-        class S,
-        class ErrorHandler>
+        class S>
     constexpr bool
-        is_utf_iter<utf_iterator<FromFormat, ToFormat, I, S, ErrorHandler>> =
+        is_utf_iter<utf_iterator<FromFormat, ToFormat, I, S>> =
             true;
 
     // These are here because so many downstream views that use

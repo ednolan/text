@@ -182,13 +182,6 @@ namespace boost { namespace text { BOOST_TEXT_NAMESPACE_V2 {
 
     template<typename T>
     // clang-format off
-        concept transcoding_error_handler = requires(T t, std::string_view msg) {
-        { t(msg) } -> std::same_as<char32_t>;
-        // clang-format on
-    };
-
-    template<typename T>
-    // clang-format off
     concept utf_range_like =
         utf_range<std::remove_reference_t<T>> ||
         utf_pointer<std::remove_reference_t<T>>;

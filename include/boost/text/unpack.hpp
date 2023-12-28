@@ -62,11 +62,10 @@ namespace boost { namespace text {
             format ToFormat,
             typename I,
             typename S,
-            typename ErrorHandler,
             typename Repack>
         constexpr auto unpack_iterator_and_sentinel_impl(
-            utf_iterator<FromFormat, ToFormat, I, S, ErrorHandler> first,
-            utf_iterator<FromFormat, ToFormat, I, S, ErrorHandler> last,
+            utf_iterator<FromFormat, ToFormat, I, S> first,
+            utf_iterator<FromFormat, ToFormat, I, S> last,
             Repack repack);
 
         template<
@@ -74,10 +73,9 @@ namespace boost { namespace text {
             format ToFormat,
             typename I,
             typename S,
-            typename ErrorHandler,
             typename Repack>
         constexpr auto unpack_iterator_and_sentinel_impl(
-            utf_iterator<FromFormat, ToFormat, I, S, ErrorHandler> first,
+            utf_iterator<FromFormat, ToFormat, I, S> first,
             S last,
             Repack repack);
 
@@ -155,14 +153,13 @@ namespace boost { namespace text { namespace detail {
         format ToFormat,
         typename I,
         typename S,
-        typename ErrorHandler,
         typename Repack>
     constexpr auto unpack_iterator_and_sentinel_impl(
-        utf_iterator<FromFormat, ToFormat, I, S, ErrorHandler> first,
-        utf_iterator<FromFormat, ToFormat, I, S, ErrorHandler> last,
+        utf_iterator<FromFormat, ToFormat, I, S> first,
+        utf_iterator<FromFormat, ToFormat, I, S> last,
         Repack repack)
     {
-        using iterator = utf_iterator<FromFormat, ToFormat, I, S, ErrorHandler>;
+        using iterator = utf_iterator<FromFormat, ToFormat, I, S>;
         if constexpr (std::bidirectional_iterator<I>) {
             return boost::text::unpack_iterator_and_sentinel(
                 first.base(),
@@ -187,14 +184,13 @@ namespace boost { namespace text { namespace detail {
         format ToFormat,
         typename I,
         typename S,
-        typename ErrorHandler,
         typename Repack>
     constexpr auto unpack_iterator_and_sentinel_impl(
-        utf_iterator<FromFormat, ToFormat, I, S, ErrorHandler> first,
+        utf_iterator<FromFormat, ToFormat, I, S> first,
         S last,
         Repack repack)
     {
-        using iterator = utf_iterator<FromFormat, ToFormat, I, S, ErrorHandler>;
+        using iterator = utf_iterator<FromFormat, ToFormat, I, S>;
         if constexpr (std::bidirectional_iterator<I>) {
             return boost::text::unpack_iterator_and_sentinel(
                 first.base(),
