@@ -2,9 +2,9 @@ cmake_minimum_required(VERSION 3.5)
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 project(boost_text LANGUAGES CXX)
 
-################################################## 
+##################################################
 # C++ standard version selection
-################################################## 
+##################################################
 set(CXX_STD 14 CACHE STRING "Set to 14, 17, etc., to enable C++14, C++17, etc.")
 message("-- Using -std=c++${CXX_STD}")
 
@@ -12,14 +12,14 @@ message("-- Using -std=c++${CXX_STD}")
 ##################################################
 # Sanitizers
 ##################################################
-set(USE_ASAN false CACHE BOOL "Set to true to enable -fsanitize=address when building tests.") 
+set(USE_ASAN false CACHE BOOL "Set to true to enable -fsanitize=address when building tests.")
 set(USE_UBSAN false CACHE BOOL "Set to true to enable -fsanitize=undefined when building tests.")
 if (USE_ASAN AND USE_UBSAN)
     message(FATAL_ERROR "USE_ASAN and USE_UBSAN must not be enabled at the same time")
 elseif (USE_ASAN)
     set(compile_flags -fsanitize=address)
     set(link_flags -fsanitize=address)
-    message("-- Using -fsanitize=address") 
+    message("-- Using -fsanitize=address")
 elseif (USE_UBSAN)
     set(compile_flags -fsanitize=undefined)
     set(link_flags -fsanitize=undefined)
@@ -52,6 +52,8 @@ endif ()
 ##################################################
 set(boost_components)
 
+set(BUILD_POST_P2728 true CACHE BOOL "Set to true to build components unrelated to P2728.")
+
 # Built conditionally, because it relies on curses, Boost.System, and
 # Boost.Filesystem.  The Boost dependencies mean it must come before the
 # include here.
@@ -66,7 +68,8 @@ include(dependencies)
 ##################################################
 # text library
 ##################################################
-add_library(text
+
+set(TEXT_SRC_POST_P2728
     src/grapheme_break.cpp
     src/word_break.cpp
     src/sentence_break.cpp
@@ -80,6 +83,12 @@ add_library(text
     src/case_mapping.cpp
     src/data_versions.cpp
 )
+
+if (BUILD_POST_P2728)
+add_library(text ${TEXT_SRC_POST_P2728})
+else()
+add_library(text src/dummy.cpp)
+endif()
 
 target_include_directories(text
   PUBLIC
@@ -140,4 +149,3 @@ endif ()
 add_subdirectory(test)
 add_subdirectory(perf)
 add_subdirectory(example)
-
