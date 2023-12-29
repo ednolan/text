@@ -942,7 +942,7 @@ namespace boost { namespace text {
         template<std::input_iterator I>
             requires std::default_initializable<std::iter_value_t<I>> &&
                      std::equality_comparable_with<std::iter_reference_t<I>, std::iter_value_t<I>>
-        friend constexpr auto operator==(I it, null_sentinel_t)
+        friend constexpr bool operator==(I it, null_sentinel_t)
         {
             return *it == std::iter_value_t<I>{};
         }
