@@ -149,16 +149,10 @@ namespace boost { namespace text {
             { return y.end_ - x.it_; }
     };
 
-    template<class R, auto F>
-    project_view(R &&) -> project_view<std::views::all_t<R>, F>;
-
     namespace detail {
         template<auto F>
         struct project_impl : range_adaptor_closure<project_impl<F>>
         {
-            template<class R>
-            using project_view_type = project_view<R, F>;
-
             template<class R>
                 requires std::ranges::viewable_range<R> &&
                          std::ranges::input_range<R> &&
@@ -166,7 +160,7 @@ namespace boost { namespace text {
                          detail::can_reference<std::invoke_result_t<decltype(F)&, std::ranges::range_reference_t<R>>>
             [[nodiscard]] constexpr auto operator()(R && r) const
             {
-                return project_view_type(std::forward<R>(r));
+                return project_view<std::views::all_t<R>, F>(std::forward<R>(r));
             }
         };
     }
@@ -196,9 +190,14 @@ namespace boost { namespace text {
                 if constexpr (detail::is_empty_view<T>) {
                     return std::ranges::empty_view<dtl::format_to_type_t<Format>>{};
                 } else if constexpr (std::is_pointer_v<T>) {
-                    return View(std::ranges::subrange(r, null_sentinel));
+                    auto const subrange{
+                        [&] -> decltype(auto) {
+                            return std::ranges::subrange(r, null_sentinel);
+                        }};
+                    using SubrangeType = decltype(subrange());
+                    return View<std::views::all_t<SubrangeType>>(subrange());
                 } else {
-                    return View(std::forward<R>(r));
+                    return View<std::views::all_t<R>>(std::forward<R>(r));
                 }
             }
         };
@@ -353,9 +352,6 @@ namespace boost { namespace text {
     };
 
 
-    template<format Format, class R>
-    utf_view(R &&) -> utf_view<Format, std::views::all_t<R>>;
-
     template<class V>
     using utf8_view = utf_view<format::utf8, V>;
     template<class V>
@@ -383,9 +379,6 @@ namespace boost { namespace text { BOOST_TEXT_NAMESPACE_V2 {
 #endif
 
     namespace dtl {
-        template<class R, template<class> class View>
-        concept can_utf_view = requires { View(std::declval<R>()); };
-
         template<class T>
         constexpr bool is_utf_view = false;
         template<class T>
@@ -429,8 +422,7 @@ namespace boost { namespace text { BOOST_TEXT_NAMESPACE_V2 {
         {
             template<class R>
                 requires is_utf_view<std::remove_cvref_t<R>> ||
-                         (std::ranges::viewable_range<R> &&
-                          can_utf_view<unpacked_range<R>, View>) ||
+                         (std::ranges::viewable_range<R>) ||
                          utf_pointer<std::remove_cvref_t<R>>
             [[nodiscard]] constexpr auto operator()(R && r) const
             {
@@ -438,13 +430,28 @@ namespace boost { namespace text { BOOST_TEXT_NAMESPACE_V2 {
                 if constexpr (detail::is_empty_view<T>) {
                     return std::ranges::empty_view<dtl::format_to_type_t<Format>>{};
                 } else if constexpr (is_utf_view<T>) {
-                    return View(std::forward<R>(r).base());
+                    auto const base{
+                        [&] -> decltype(auto) {
+                            return std::forward<R>(r).base();
+                        }};
+                    using BaseType = decltype(base());
+                    return View<std::views::all_t<BaseType>>(base());
                 } else if constexpr (detail::is_charn_view<T>) {
-                    return View(std::forward<R>(r));
+                    return View<std::views::all_t<R>>(std::forward<R>(r));
                 } else if constexpr (std::is_pointer_v<T>) {
-                    return View(std::ranges::subrange(r, null_sentinel));
+                    auto const subrange{
+                        [&] -> decltype(auto) {
+                            return std::ranges::subrange(r, null_sentinel);
+                        }};
+                    using SubrangeType = decltype(subrange());
+                    return View<std::views::all_t<SubrangeType>>(subrange());
                 } else {
-                    return View(dtl::unpack_range(std::forward<R>(r)));
+                    auto const unpacked{
+                        [&] -> decltype(auto) {
+                            return dtl::unpack_range(std::forward<R>(r));
+                        }};
+                    using UnpackedType = decltype(unpacked());
+                    return View<std::views::all_t<UnpackedType>>(unpacked());
                 }
             }
         };
