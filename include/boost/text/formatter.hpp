@@ -7,7 +7,6 @@
 #define BOOST_TEXT_FORMATTER_HPP
 
 #include <boost/text/transcode_view.hpp>
-#include <boost/text/estimated_width.hpp>
 
 #include <format>
 
