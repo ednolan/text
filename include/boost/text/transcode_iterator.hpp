@@ -2979,6 +2979,74 @@ namespace boost { namespace text { BOOST_TEXT_NAMESPACE_V2 {
         friend class utf_iterator;
     };
 
+    template<utf8_iter I, std::sentinel_for<I> S>
+    auto make_utf_8_to_16_iterator(I it, S last) {
+        return utf_iterator<format::utf8, format::utf16, I, S>(std::move(it),
+                                                               std::move(last));
+    }
+    template<utf16_iter I, std::sentinel_for<I> S>
+    auto make_utf_16_to_8_iterator(I it, S last) {
+        return utf_iterator<format::utf16, format::utf8, I, S>(std::move(it),
+                                                               std::move(last));
+    }
+    template<utf8_iter I, std::sentinel_for<I> S>
+    auto make_utf_8_to_32_iterator(I it, S last) {
+        return utf_iterator<format::utf8, format::utf32, I, S>(std::move(it),
+                                                               std::move(last));
+    }
+    template<utf32_iter I, std::sentinel_for<I> S>
+    auto make_utf_32_to_8_iterator(I it, S last) {
+        return utf_iterator<format::utf32, format::utf8, I, S>(std::move(it),
+                                                               std::move(last));
+    }
+    template<utf16_iter I, std::sentinel_for<I> S>
+    auto make_utf_16_to_32_iterator(I it, S last) {
+        return utf_iterator<format::utf16, format::utf32, I, S>( std::move(it),
+                                                                std::move(last));
+    }
+    template<utf32_iter I, std::sentinel_for<I> S>
+    auto make_utf_32_to_16_iterator(I it, S last) {
+        return utf_iterator<format::utf32, format::utf16, I, S>( std::move(it),
+                                                                std::move(last));
+    }
+    template<utf8_iter I, std::sentinel_for<I> S>
+    auto make_utf_8_to_16_iterator(I first, I it, S last) {
+        return utf_iterator<format::utf8, format::utf16, I, S>(std::move(first),
+                                                               std::move(it),
+                                                               std::move(last));
+    }
+    template<utf16_iter I, std::sentinel_for<I> S>
+    auto make_utf_16_to_8_iterator(I first, I it, S last) {
+        return utf_iterator<format::utf16, format::utf8, I, S>(std::move(first),
+                                                               std::move(it),
+                                                               std::move(last));
+    }
+    template<utf8_iter I, std::sentinel_for<I> S>
+    auto make_utf_8_to_32_iterator(I first, I it, S last) {
+        return utf_iterator<format::utf8, format::utf32, I, S>(std::move(first),
+                                                               std::move(it),
+                                                               std::move(last));
+    }
+    template<utf32_iter I, std::sentinel_for<I> S>
+    auto make_utf_32_to_8_iterator(I first, I it, S last) {
+        return utf_iterator<format::utf32, format::utf8, I, S>(std::move(first),
+                                                               std::move(it),
+                                                               std::move(last));
+    }
+    template<utf16_iter I, std::sentinel_for<I> S>
+    auto make_utf_16_to_32_iterator(I first, I it, S last) {
+        return utf_iterator<format::utf16, format::utf32, I, S>(std::move(first),
+                                                                std::move(it),
+                                                                std::move(last));
+    }
+    template<utf32_iter I, std::sentinel_for<I> S>
+    auto make_utf_32_to_16_iterator(I first, I it, S last) {
+        return utf_iterator<format::utf32, format::utf16, I, S>(std::move(first),
+                                                                std::move(it),
+                                                                std::move(last));
+    }
+
+
 }}}
 
 namespace boost { namespace text { namespace detail {

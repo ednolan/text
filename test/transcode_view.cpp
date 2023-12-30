@@ -24,11 +24,11 @@ struct my_text_type
 
     auto begin() const
     {
-        return utf_8_to_32_iterator(utf8_.begin(), utf8_.begin(), utf8_.end());
+        return make_utf_8_to_32_iterator(utf8_.begin(), utf8_.begin(), utf8_.end());
     }
     auto end() const
     {
-        return utf_8_to_32_iterator(utf8_.begin(), utf8_.end(), utf8_.end());
+        return make_utf_8_to_32_iterator(utf8_.begin(), utf8_.end(), utf8_.end());
     }
 
 private:
@@ -63,7 +63,7 @@ TEST(transcode_view, paper_example)
         auto first = str.begin();
         auto it = first;
         auto last = str.end();
-        boost::text::utf_8_to_32_iterator(first, it, last);
+        boost::text::make_utf_8_to_32_iterator(first, it, last);
     }
 }
 
